@@ -16,6 +16,19 @@ module Resque
     
       include Resque::Helpers
 
+      # 
+      #   Like enqueue(), but enqueues an entire batch at a time. This ensures
+      # that if the first job finishes before any other jobs are enqueued, the
+      # first job doesn't think it was the last one and run the finalize hooks.
+      def enqueue_batch(batch_id, arglist)
+        # Add everything to the batch set first, so we know it won't be empty
+        # until we've finished everything in the batch.
+        arglist.each { |args| redis.sadd(batch(batch_id), encode(args)) }
+
+        # Enqueue the jobs.
+        arglist.each { |args| Resque.enqueue(self, *args) }
+      end
+
       #
       # Helper method used to generate the batch key.
       def batch(id)
