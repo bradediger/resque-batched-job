@@ -26,7 +26,7 @@ module Resque
         arglist.each { |args| redis.sadd(batch(batch_id), encode(args)) }
 
         # Enqueue the jobs.
-        arglist.each { |args| Resque.enqueue(self, *args) }
+        arglist.each { |args| Resque.enqueue(self, batch_id, *args) }
       end
 
       #
